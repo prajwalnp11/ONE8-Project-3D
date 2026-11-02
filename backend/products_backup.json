@@ -1,0 +1,41 @@
+[
+{
+  "model": "products.product",
+  "pk": 1,
+  "fields": {
+    "name": "Boom Rush",
+    "description": "ONE8 multi-activity performance trainer for running, training and movement.",
+    "price": "9999.00",
+    "category": "footwear",
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-11-01T09:21:52.032Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 2,
+  "fields": {
+    "name": "Arc T-Shirt",
+    "description": "ONE8 performance T-shirt designed for comfortable everyday training and movement.",
+    "price": "2499.00",
+    "category": "apparel",
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-11-01T09:22:38.768Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 3,
+  "fields": {
+    "name": "Prime Flo Cap",
+    "description": "ONE8 Prime Flo cap designed for everyday sportswear and casual use.",
+    "price": "1499.00",
+    "category": "accessories",
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-11-01T09:23:03.384Z"
+  }
+}
+]

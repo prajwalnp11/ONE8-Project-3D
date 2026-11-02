@@ -116,7 +116,7 @@ function ProductList() {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/products/")
+    fetch("/api/products/")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to load products");

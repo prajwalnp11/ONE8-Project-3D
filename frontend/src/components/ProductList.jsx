@@ -1,7 +1,9 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { X, Rotate3D, Layers3 } from "lucide-react";
-import Product3D from "./Product3D";
+
+// Load the 3D model only when the footwear configurator is opened.
+const Product3D = lazy(() => import("./Product3D"));
 
 function ShoeConfigurator({ product, onClose }) {
   const materials = [
@@ -52,7 +54,15 @@ function ShoeConfigurator({ product, onClose }) {
         <div className="config-visual">
           <span className="visual-label">INTERACTIVE 3D VIEW</span>
 
-          <Product3D />
+          <Suspense
+            fallback={
+              <div className="product3d-loading">
+                LOADING 3D EXPERIENCE...
+              </div>
+            }
+          >
+            <Product3D />
+          </Suspense>
 
           <div className="rotate-hint">
             <Rotate3D size={18} />
@@ -65,7 +75,9 @@ function ShoeConfigurator({ product, onClose }) {
 
           <h1>{product.name}</h1>
 
-          <h2>₹{Number(product.price).toLocaleString("en-IN")}</h2>
+          <h2>
+            ₹{Number(product.price).toLocaleString("en-IN")}
+          </h2>
 
           <p className="config-description">
             {product.description}
@@ -121,6 +133,7 @@ function ProductList() {
         if (!response.ok) {
           throw new Error("Failed to load products");
         }
+
         return response.json();
       })
       .then((data) => {
@@ -133,13 +146,19 @@ function ProductList() {
       });
   }, []);
 
-  if (loading) return <p>Loading products...</p>;
-  if (error) return <p>Unable to load products: {error}</p>;
+  if (loading) {
+    return <p>Loading products...</p>;
+  }
+
+  if (error) {
+    return <p>Unable to load products: {error}</p>;
+  }
 
   return (
     <>
       <section className="product-list" id="product-catalogue">
         <h2>OUR COLLECTION</h2>
+
         <p className="catalogue-subtitle">
           DISCOVER PERFORMANCE. EXPLORE EVERY DETAIL.
         </p>
@@ -164,25 +183,29 @@ function ProductList() {
               </p>
 
               <h3>{product.name}</h3>
+
               <p>{product.description}</p>
 
               <div className="product-card-bottom">
                 <strong>
                   ₹{Number(product.price).toLocaleString("en-IN")}
                 </strong>
+
                 <span>EXPLORE PRODUCT ↗</span>
               </div>
 
               {product.is_featured && (
-                <span className="featured-label">FEATURED</span>
+                <span className="featured-label">
+                  FEATURED
+                </span>
               )}
             </article>
           ))}
         </div>
       </section>
 
-      {selectedProduct && (
-        selectedProduct.category === "footwear" ? (
+      {selectedProduct &&
+        (selectedProduct.category === "footwear" ? (
           <ShoeConfigurator
             product={selectedProduct}
             onClose={() => setSelectedProduct(null)}
@@ -192,16 +215,22 @@ function ProductList() {
             <button onClick={() => setSelectedProduct(null)}>
               <X size={20} /> CLOSE
             </button>
+
             <p>{selectedProduct.category.toUpperCase()}</p>
+
             <h2>{selectedProduct.name}</h2>
+
             <p>{selectedProduct.description}</p>
+
             <strong>
               ₹{Number(selectedProduct.price).toLocaleString("en-IN")}
             </strong>
-            <p>Detailed 3D product experience coming in a later stage.</p>
+
+            <p>
+              Detailed 3D product experience coming in a later stage.
+            </p>
           </div>
-        )
-      )}
+        ))}
     </>
   );
 }

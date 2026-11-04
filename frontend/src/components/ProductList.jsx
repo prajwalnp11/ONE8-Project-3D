@@ -1,236 +1,292 @@
+import { useEffect, useState, useMemo } from "react";
+import { Search, X, SlidersHorizontal, Rotate3D, ChevronDown } from "lucide-react";
+import "./ProductList.css";
+import ProductDetail from "./ProductDetail";
 
-import { useEffect, useState, lazy, Suspense } from "react";
-import { X, Rotate3D, Layers3 } from "lucide-react";
+const CATEGORIES = [
+  { id: "all", label: "ALL OBJECTS" },
+  { id: "cricket", label: "CRICKET" },
+  { id: "running", label: "RUNNING & TRAINING" },
+  { id: "t-shirts", label: "T-SHIRTS" },
+  { id: "polos", label: "POLOS" },
+  { id: "outerwear", label: "OUTERWEAR" },
+  { id: "bottoms", label: "PANTS & SHORTS" },
+  { id: "accessories", label: "CAPS & ACCESSORIES" },
+];
 
-// Load the 3D model only when the footwear configurator is opened.
-const Product3D = lazy(() => import("./Product3D"));
+const SORT_OPTIONS = [
+  { id: "featured", label: "FEATURED FIRST" },
+  { id: "price_asc", label: "PRICE: LOW TO HIGH" },
+  { id: "price_desc", label: "PRICE: HIGH TO LOW" },
+  { id: "name", label: "NAME: A — Z" },
+];
 
-function ShoeConfigurator({ product, onClose }) {
-  const materials = [
-    {
-      name: "Upper",
-      material: "Engineered mesh",
-      purpose: "Breathability and lightweight support.",
-    },
-    {
-      name: "Lining",
-      material: "Soft textile",
-      purpose: "Comfort around the foot.",
-    },
-    {
-      name: "Insole",
-      material: "Cushioning foam",
-      purpose: "Underfoot comfort.",
-    },
-    {
-      name: "Midsole",
-      material: "EVA foam",
-      purpose: "Shock absorption and cushioning.",
-    },
-    {
-      name: "Outsole",
-      material: "Rubber",
-      purpose: "Traction and durability.",
-    },
-    {
-      name: "Laces",
-      material: "Polyester",
-      purpose: "Adjustable and secure fit.",
-    },
-  ];
+const PAGE_SIZE = 12;
 
-  return (
-    <div className="configurator">
-      <button className="config-close" onClick={onClose}>
-        <X size={24} /> CLOSE
-      </button>
-
-      <div className="config-header">
-        <span>ONE8 / PRODUCT LAB</span>
-        <span>01 — FOOTWEAR</span>
-      </div>
-
-      <div className="config-layout">
-        <div className="config-visual">
-          <span className="visual-label">INTERACTIVE 3D VIEW</span>
-
-          <Suspense
-            fallback={
-              <div className="product3d-loading">
-                LOADING 3D EXPERIENCE...
-              </div>
-            }
-          >
-            <Product3D />
-          </Suspense>
-
-          <div className="rotate-hint">
-            <Rotate3D size={18} />
-            DRAG TO ROTATE 360°
-          </div>
-        </div>
-
-        <aside className="config-info">
-          <p className="config-kicker">PERFORMANCE FOOTWEAR</p>
-
-          <h1>{product.name}</h1>
-
-          <h2>
-            ₹{Number(product.price).toLocaleString("en-IN")}
-          </h2>
-
-          <p className="config-description">
-            {product.description}
-          </p>
-
-          <div className="config-divider" />
-
-          <h3>
-            <Layers3 size={18} />
-            MATERIAL CONSTRUCTION
-          </h3>
-
-          <div className="material-list">
-            {materials.map((item, index) => (
-              <div className="material-item" key={item.name}>
-                <span className="material-number">
-                  0{index + 1}
-                </span>
-
-                <div>
-                  <strong>{item.name}</strong>
-                  <p>{item.material}</p>
-                  <small>{item.purpose}</small>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="material-note">
-            Demonstration material information.
-            Not verified specifications of an official product.
-          </p>
-        </aside>
-      </div>
-
-      <div className="config-footer">
-        <span>ONE8 — DEFINE YOUR OWN GAME</span>
-        <span>DRAG · ROTATE · EXPLORE</span>
-      </div>
-    </div>
-  );
-}
-
-function ProductList() {
+function ProductList({ externalCategory = null, onCategoryChange = null }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Filters & State
+  const [internalCategory, setInternalCategory] = useState(externalCategory || "all");
+  const activeCategory = externalCategory || internalCategory;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("featured");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const handleCategorySelect = (catId) => {
+    setInternalCategory(catId);
+    if (onCategoryChange) {
+      onCategoryChange(catId);
+    }
+  };
+
+  // Fetch from Django API
   useEffect(() => {
-    fetch("/api/products/")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to load products");
+    let ignore = false;
+
+    async function loadData() {
+      let url = "/api/products/";
+      const params = new URLSearchParams();
+
+      if (activeCategory !== "all") {
+        params.append("category", activeCategory);
+      }
+      if (searchQuery.trim()) {
+        params.append("search", searchQuery.trim());
+      }
+      if (sortBy) {
+        params.append("ordering", sortBy);
+      }
+
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to load products from server");
+        const data = await res.json();
+        if (!ignore) {
+          setProducts(data);
+          setVisibleCount(PAGE_SIZE);
+          setLoading(false);
         }
+      } catch (err) {
+        if (!ignore) {
+          setError(err.message);
+          setLoading(false);
+        }
+      }
+    }
 
-        return response.json();
-      })
-      .then((data) => {
-        setProducts(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+    loadData();
 
-  if (loading) {
-    return <p>Loading products...</p>;
-  }
+    return () => {
+      ignore = true;
+    };
+  }, [activeCategory, searchQuery, sortBy]);
 
-  if (error) {
-    return <p>Unable to load products: {error}</p>;
-  }
+  const visibleProducts = useMemo(() => {
+    return products.slice(0, visibleCount);
+  }, [products, visibleCount]);
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, products.length));
+  };
 
   return (
     <>
-      <section className="product-list" id="product-catalogue">
-        <h2>OUR COLLECTION</h2>
-
-        <p className="catalogue-subtitle">
-          DISCOVER PERFORMANCE. EXPLORE EVERY DETAIL.
-        </p>
-
-        <div className="product-grid">
-          {products.map((product) => (
-            <article
-              className="product-card"
-              key={product.id}
-              onClick={() => setSelectedProduct(product)}
+      <div className="catalogue-controls-wrapper">
+        {/* CATEGORY FILTER TABS */}
+        <div className="category-filter-bar" role="tablist" aria-label="Product categories">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              role="tab"
+              aria-selected={activeCategory === cat.id}
+              className={`category-tab ${activeCategory === cat.id ? "is-active" : ""}`}
+              onClick={() => handleCategorySelect(cat.id)}
             >
-              <div className="product-image">
-                {product.image ? (
-                  <img src={product.image} alt={product.name} />
-                ) : (
-                  <span>{product.category.toUpperCase()}</span>
-                )}
-              </div>
-
-              <p className="product-category">
-                {product.category.toUpperCase()}
-              </p>
-
-              <h3>{product.name}</h3>
-
-              <p>{product.description}</p>
-
-              <div className="product-card-bottom">
-                <strong>
-                  ₹{Number(product.price).toLocaleString("en-IN")}
-                </strong>
-
-                <span>EXPLORE PRODUCT ↗</span>
-              </div>
-
-              {product.is_featured && (
-                <span className="featured-label">
-                  FEATURED
-                </span>
-              )}
-            </article>
+              {cat.label}
+            </button>
           ))}
         </div>
-      </section>
 
-      {selectedProduct &&
-        (selectedProduct.category === "footwear" ? (
-          <ShoeConfigurator
-            product={selectedProduct}
-            onClose={() => setSelectedProduct(null)}
-          />
-        ) : (
-          <div className="product-message">
-            <button onClick={() => setSelectedProduct(null)}>
-              <X size={20} /> CLOSE
-            </button>
-
-            <p>{selectedProduct.category.toUpperCase()}</p>
-
-            <h2>{selectedProduct.name}</h2>
-
-            <p>{selectedProduct.description}</p>
-
-            <strong>
-              ₹{Number(selectedProduct.price).toLocaleString("en-IN")}
-            </strong>
-
-            <p>
-              Detailed 3D product experience coming in a later stage.
-            </p>
+        {/* SEARCH & SORT TOOLBAR */}
+        <div className="catalogue-toolbar">
+          <div className="search-box">
+            <Search size={15} className="search-icon" />
+            <input
+              type="text"
+              placeholder="SEARCH THE COLLECTION..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search products"
+            />
+            {searchQuery && (
+              <button
+                className="clear-search"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-        ))}
+
+          <div className="sort-group">
+            <span className="sort-label">
+              <SlidersHorizontal size={13} />
+              SORT:
+            </span>
+            <div className="sort-select-shell">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort products"
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="sort-chevron" />
+            </div>
+          </div>
+        </div>
+
+        {/* COUNT META */}
+        <div className="catalogue-meta-row">
+          <span className="catalogue-count">
+            {products.length} {products.length === 1 ? "OBJECT FOUND" : "OBJECTS IN THE EDIT"}
+          </span>
+          <span className="catalogue-spec-tag">
+            PORTFOLIO CONCEPT / AUTHENTIC ONE8 SPECIFICATIONS
+          </span>
+        </div>
+      </div>
+
+      {/* PRODUCT GRID */}
+      {loading ? (
+        <div className="catalogue-status-box">
+          <div className="catalogue-spinner" />
+          <p>LOADING COLLECTION...</p>
+        </div>
+      ) : error ? (
+        <div className="catalogue-status-box">
+          <p className="catalogue-error">Unable to load collection: {error}</p>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="catalogue-status-box">
+          <p>NO PRODUCTS MATCHED YOUR SELECTION.</p>
+          <button
+            className="reset-filter-btn"
+            onClick={() => {
+              setActiveCategory("all");
+              setSearchQuery("");
+            }}
+          >
+            RESET FILTERS
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="product-grid">
+            {visibleProducts.map((product) => {
+              const has3D = product.model_3d_type && product.model_3d_type !== "none";
+              const price = Number(product.price);
+
+              return (
+                <article
+                  className="product-card"
+                  key={product.id}
+                  onClick={() => setSelectedProduct(product)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedProduct(product);
+                    }
+                  }}
+                  aria-label={`Explore ${product.name}`}
+                >
+                  <div className="product-image">
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+
+                    <div
+                      className="product-image-fallback"
+                      style={{ display: product.image ? "none" : "flex" }}
+                    >
+                      <span>{(product.product_type || product.category || "ONE8").toUpperCase()}</span>
+                    </div>
+
+                    {has3D && (
+                      <span className="badge-3d" title="Interactive 3D model available">
+                        <Rotate3D size={11} /> 3D VIEW
+                      </span>
+                    )}
+
+                    {product.is_featured && (
+                      <span className="featured-label">FEATURED</span>
+                    )}
+                  </div>
+
+                  <p className="product-category">
+                    {product.product_type
+                      ? product.product_type.toUpperCase()
+                      : (product.category || "").toUpperCase()}
+                  </p>
+
+                  <h3>{product.name}</h3>
+
+                  <p className="product-desc-snippet">{product.description}</p>
+
+                  <div className="product-card-bottom">
+                    <strong>₹{price.toLocaleString("en-IN")}</strong>
+                    <span>EXPLORE OBJECT ↗</span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* LOAD MORE BUTTON */}
+          {visibleCount < products.length && (
+            <div className="load-more-row">
+              <button className="load-more-btn" onClick={handleLoadMore}>
+                LOAD MORE OBJECTS ({products.length - visibleCount} REMAINING)
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* DETAIL MODAL */}
+      {selectedProduct && (
+        <ProductDetail
+          key={selectedProduct.id}
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onSelectProduct={(p) => setSelectedProduct(p)}
+          allProducts={products}
+        />
+      )}
     </>
   );
 }

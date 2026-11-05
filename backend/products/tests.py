@@ -131,3 +131,19 @@ class ProductAPITests(TestCase):
         self.assertEqual(response.data["available_sizes"], ["UK 8"])
         self.assertEqual(response.data["available_colors"][0]["name"], "Sonic Blue")
         self.assertEqual(response.data["specifications"]["Sport"], "Cricket")
+
+    def test_price_range_filter(self):
+        url = reverse("product-list")
+        response = self.client.get(url, {"min_price": "2000", "max_price": "10000"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for prod in response.data:
+            self.assertGreaterEqual(float(prod["price"]), 2000)
+            self.assertLessEqual(float(prod["price"]), 10000)
+
+    def test_has_3d_filter(self):
+        url = reverse("product-list")
+        response = self.client.get(url, {"has_3d": "true"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for prod in response.data:
+            self.assertNotEqual(prod["model_3d_type"], "none")
+            self.assertNotEqual(prod["model_3d_type"], "")

@@ -55,9 +55,31 @@ class ProductListAPIView(generics.ListAPIView):
                     | Q(product_type__iexact=category)
                 )
 
+        sub_category = self.request.query_params.get("sub_category")
+        if sub_category:
+            queryset = queryset.filter(sub_category__iexact=sub_category.strip())
+
         product_type = self.request.query_params.get("type")
         if product_type:
             queryset = queryset.filter(product_type__iexact=product_type)
+
+        min_price = self.request.query_params.get("min_price")
+        if min_price:
+            try:
+                queryset = queryset.filter(price__gte=float(min_price))
+            except ValueError:
+                pass
+
+        max_price = self.request.query_params.get("max_price")
+        if max_price:
+            try:
+                queryset = queryset.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+
+        has_3d = self.request.query_params.get("has_3d")
+        if has_3d and has_3d.lower() in ["true", "1"]:
+            queryset = queryset.filter(~Q(model_3d_type="none") & ~Q(model_3d_type=""))
 
         search = self.request.query_params.get("search")
         if search:
@@ -66,6 +88,7 @@ class ProductListAPIView(generics.ListAPIView):
                 Q(name__icontains=search)
                 | Q(description__icontains=search)
                 | Q(product_type__icontains=search)
+                | Q(sub_category__icontains=search)
             )
 
         featured = self.request.query_params.get("featured")
@@ -80,9 +103,11 @@ class ProductListAPIView(generics.ListAPIView):
             queryset = queryset.order_by("price")
         elif ordering == "price_desc":
             queryset = queryset.order_by("-price")
+        elif ordering == "newest":
+            queryset = queryset.order_by("-created_at")
         elif ordering == "name":
             queryset = queryset.order_by("name")
-        elif ordering == "featured":
+        elif ordering in ["featured", "popular"]:
             queryset = queryset.order_by("-is_featured", "-created_at")
 
         return queryset

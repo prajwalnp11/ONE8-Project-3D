@@ -1,0 +1,283 @@
+/* ========================================================
+   ONE8 3D PRODUCT LAB STYLING
+   Luxury black & white editorial customizer interface
+   ======================================================== */
+.product-lab-container {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  width: 100%;
+  height: 100%;
+  min-height: 580px;
+  background: #0d0d0d;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 3D STAGE AREA */
+.lab-stage-area {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 580px;
+  background: radial-gradient(circle at 45% 45%, #1f1f1f 0%, #090909 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lab-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab;
+}
+
+.lab-canvas:active {
+  cursor: grabbing;
+}
+
+/* FLOATING FOCUS PRESET BUTTONS */
+.lab-focus-pills {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(18, 18, 18, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px 6px;
+}
+
+.lab-focus-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: #888888;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.lab-focus-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lab-focus-btn.is-active {
+  color: #000000;
+  background: #ffffff;
+  font-weight: 600;
+}
+
+/* HINT */
+.lab-stage-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  pointer-events: none;
+}
+
+/* CUSTOMIZATION SIDEBAR PANEL */
+.lab-sidebar {
+  background: #121212;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.lab-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 16px;
+}
+
+.lab-header-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: #36c6ce;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.lab-header h3 {
+  font-family: var(--font-headline, sans-serif);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* SECTION */
+.lab-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lab-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.lab-section-subtitle {
+  color: #888888;
+  font-size: 10px;
+}
+
+/* COLOR SWATCHES GRID */
+.lab-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lab-swatch-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  background: #181818;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lab-swatch-card:hover {
+  background: #202020;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lab-swatch-card.is-active {
+  background: #252525;
+  border-color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+.lab-swatch-preview {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lab-swatch-name {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: #cccccc;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* FINISH BUTTONS */
+.lab-finish-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.lab-finish-btn {
+  padding: 9px 12px;
+  background: #181818;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  color: #aaaaaa;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.lab-finish-btn:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.lab-finish-btn.is-active {
+  color: #000000;
+  background: #ffffff;
+  border-color: #ffffff;
+  font-weight: 600;
+}
+
+/* ACTIONS */
+.lab-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lab-btn-reset {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.lab-btn-reset:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+/* RESPONSIVE */
+@media (max-width: 960px) {
+  .product-lab-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 420px auto;
+  }
+
+  .lab-stage-area {
+    min-height: 420px;
+  }
+
+  .lab-sidebar {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

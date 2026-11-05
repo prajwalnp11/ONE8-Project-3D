@@ -348,6 +348,107 @@
   border-top: 1px solid #d5d4ce;
 }
 
+.card-price-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.card-original-price {
+  font-size: 11px;
+  color: #888888;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.card-sale-tag {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 4px 8px;
+  z-index: 2;
+}
+
+.card-colors-preview {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.card-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.subcategories-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed #deddd7;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.subcategory-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid #cecdc7;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #666666;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.subcategory-pill:hover {
+  border-color: #111111;
+  color: #111111;
+}
+
+.subcategory-pill.is-active {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+.filter-3d-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid #111111;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #111111;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-3d-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.filter-3d-toggle.is-active {
+  background: #111111;
+  color: #ffffff;
+}
+
 .product-card-bottom strong {
   font-size: 15px;
   font-weight: 700;

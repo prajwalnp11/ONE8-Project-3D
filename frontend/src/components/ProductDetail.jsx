@@ -6,18 +6,21 @@ import {
   Plus,
   Minus,
   Check,
-  Layers,
   ShieldCheck,
   Camera,
+  Heart,
+  Sparkles,
+  Layers,
 } from "lucide-react";
 
 import "./ProductDetail.css";
 
-const Product3D = lazy(() => import("./Product3D"));
+const Product3DViewer = lazy(() => import("./Product3DViewer"));
+const ProductLab = lazy(() => import("./ProductLab"));
 
 const DEFAULT_BRAND_COLORS = [
-  { name: "Black", hex: "#171717" },
-  { name: "White", hex: "#f5f5f2" },
+  { name: "Stealth Black", hex: "#171717" },
+  { name: "Pure White", hex: "#f5f5f2" },
   { name: "Sonic Blue", hex: "#36c6ce" },
   { name: "Trophy Gold", hex: "#b99a43" },
   { name: "Grey", hex: "#757575" },
@@ -132,6 +135,10 @@ function ProductDetail({
 }) {
   const isFootwear = product.category === "footwear";
   const isApparel = product.category === "apparel";
+  const has3DModel =
+    product.model_3d_type &&
+    product.model_3d_type !== "none" &&
+    product.model_3d_type !== "";
 
   // Gallery images from Django
   const gallery = useMemo(() => {
@@ -144,32 +151,35 @@ function ProductDetail({
   const [activeImgIndex, setActiveImgIndex] = useState(0);
 
   // Colors
-  const colors =
-    product.available_colors && product.available_colors.length > 0
-      ? product.available_colors
-      : DEFAULT_BRAND_COLORS;
+  const colors = useMemo(() => {
+    if (product.available_colors && product.available_colors.length > 0) {
+      return product.available_colors;
+    }
+    return DEFAULT_BRAND_COLORS;
+  }, [product]);
 
   const [selectedColor, setSelectedColor] = useState(colors[0]);
 
   // Sizes
-  const sizes =
-    product.available_sizes && product.available_sizes.length > 0
-      ? product.available_sizes
-      : isFootwear
-      ? ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
-      : isApparel
-      ? ["S", "M", "L", "XL", "XXL"]
-      : [];
+  const sizes = useMemo(() => {
+    if (product.available_sizes && product.available_sizes.length > 0) {
+      return product.available_sizes;
+    }
+    if (isFootwear) return ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"];
+    if (isApparel) return ["S", "M", "L", "XL", "XXL"];
+    return [];
+  }, [product, isFootwear, isApparel]);
 
   const [selectedSize, setSelectedSize] = useState(sizes[0] || "");
   const [quantity, setQuantity] = useState(1);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   // VIEW MODE:
   // "photo" -> Authentic Real Product Photography (DEFAULT)
   // "360" -> Interactive 360° Real Product Turntable
-  // "3d-lab" -> 3D Object Lab with exploded view
+  // "3d-studio" -> Full Interactive 3D Studio Viewer
+  // "3d-lab" -> Interactive 3D Customizer / Product Lab
   const [viewMode, setViewMode] = useState("photo");
-  const [exploded, setExploded] = useState(false);
   const [added, setAdded] = useState(false);
 
   // Escape key handler
@@ -183,7 +193,12 @@ function ProductDetail({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  const price = Number(product.price);
+  const originalPrice = Number(product.price);
+  const salePrice = product.sale_price ? Number(product.sale_price) : null;
+  const currentPrice = salePrice || originalPrice;
+  const discountPercent = salePrice
+    ? Math.round((1 - salePrice / originalPrice) * 100)
+    : null;
 
   const handleAddToBag = () => {
     if (sizes.length > 0 && !selectedSize) return;
@@ -225,7 +240,9 @@ function ProductDetail({
         </span>
 
         <span className="detail-edition">
-          {product.product_type
+          {product.sub_category
+            ? product.sub_category.toUpperCase()
+            : product.product_type
             ? product.product_type.toUpperCase()
             : "THE EDIT 2026"}
         </span>
@@ -255,20 +272,32 @@ function ProductDetail({
                 onClick={() => setViewMode("360")}
               >
                 <Rotate3D size={13} />
-                360° REAL TURNTABLE
+                360° TURNTABLE
               </button>
             )}
 
-            {isFootwear && (
-              <button
-                role="tab"
-                aria-selected={viewMode === "3d-lab"}
-                className={`stage-tab ${viewMode === "3d-lab" ? "is-active" : ""}`}
-                onClick={() => setViewMode("3d-lab")}
-              >
-                <Layers size={13} />
-                3D OBJECT LAB
-              </button>
+            {has3DModel && (
+              <>
+                <button
+                  role="tab"
+                  aria-selected={viewMode === "3d-studio"}
+                  className={`stage-tab ${viewMode === "3d-studio" ? "is-active" : ""}`}
+                  onClick={() => setViewMode("3d-studio")}
+                >
+                  <Rotate3D size={13} />
+                  3D INTERACTIVE STUDIO
+                </button>
+
+                <button
+                  role="tab"
+                  aria-selected={viewMode === "3d-lab"}
+                  className={`stage-tab ${viewMode === "3d-lab" ? "is-active" : ""}`}
+                  onClick={() => setViewMode("3d-lab")}
+                >
+                  <Sparkles size={13} />
+                  3D PRODUCT LAB
+                </button>
+              </>
             )}
           </div>
 
@@ -294,18 +323,33 @@ function ProductDetail({
               )
             ) : viewMode === "360" ? (
               <Product360Viewer images={gallery} alt={product.name} />
+            ) : viewMode === "3d-studio" ? (
+              <Suspense
+                fallback={
+                  <div className="detail-loading">
+                    <div className="detail-spinner" />
+                    <span>LOADING 3D STUDIO...</span>
+                  </div>
+                }
+              >
+                <Product3DViewer
+                  product={product}
+                  selectedColor={selectedColor}
+                />
+              </Suspense>
             ) : (
               <Suspense
                 fallback={
                   <div className="detail-loading">
                     <div className="detail-spinner" />
-                    <span>LOADING 3D LAB...</span>
+                    <span>LOADING 3D PRODUCT LAB...</span>
                   </div>
                 }
               >
-                <Product3D
-                  color={selectedColor.hex}
-                  exploded={exploded}
+                <ProductLab
+                  product={product}
+                  initialColor={selectedColor}
+                  onApplyColor={(c) => setSelectedColor(c)}
                 />
               </Suspense>
             )}
@@ -317,7 +361,9 @@ function ProductDetail({
                   ? `0${activeImgIndex + 1} / 0${Math.max(gallery.length, 1)} AUTHENTIC PHOTOGRAPHY`
                   : viewMode === "360"
                   ? "360° DRAG TO ROTATE ALL ANGLES"
-                  : "3D CAD LAB · EXPLORE ANATOMY"}
+                  : viewMode === "3d-studio"
+                  ? "3D REAL-TIME STUDIO · 360° ROTATION & ZOOM"
+                  : "3D PRODUCT LAB · REAL-TIME MATERIAL CUSTOMIZATION"}
               </span>
             </div>
           </div>
@@ -325,7 +371,15 @@ function ProductDetail({
           {/* STAGE ACTION CONTROLS */}
           <div className="detail-stage-controls">
             {viewMode === "photo" ? (
-              gallery.length > 1 && (
+              has3DModel ? (
+                <button
+                  className="detail-3d-toggle"
+                  onClick={() => setViewMode("3d-studio")}
+                >
+                  <Rotate3D size={16} />
+                  EXPLORE IN 3D STUDIO (ORBIT / ZOOM / FULLSCREEN)
+                </button>
+              ) : gallery.length > 1 ? (
                 <button
                   className="detail-3d-toggle"
                   onClick={() => setViewMode("360")}
@@ -333,7 +387,7 @@ function ProductDetail({
                   <Rotate3D size={16} />
                   DRAG & ROTATE 360° IN REAL PHOTOGRAPHY
                 </button>
-              )
+              ) : null
             ) : (
               <button
                 className="detail-3d-toggle active"
@@ -341,16 +395,6 @@ function ProductDetail({
               >
                 <Camera size={16} />
                 BACK TO AUTHENTIC PHOTOGRAPHY
-              </button>
-            )}
-
-            {isFootwear && viewMode === "3d-lab" && (
-              <button
-                className={`detail-exploded-toggle ${exploded ? "active" : ""}`}
-                onClick={() => setExploded(!exploded)}
-              >
-                <Layers size={15} />
-                {exploded ? "ASSEMBLE" : "EXPLODED VIEW"}
               </button>
             )}
           </div>
@@ -382,7 +426,7 @@ function ProductDetail({
           )}
 
           <p className="detail-image-caption">
-            ONE8 / PERFORMANCE LAB — AUTHENTIC HIGH-RES PRODUCT IMAGES & INTERACTIVE ROTATION
+            ONE8 / PERFORMANCE LAB — AUTHENTIC HIGH-RES PRODUCT IMAGES & INTERACTIVE 3D
           </p>
         </section>
 
@@ -391,17 +435,32 @@ function ProductDetail({
           <div className="detail-product-heading">
             <p className="detail-eyebrow">
               ONE8 /{" "}
-              {product.product_type
-                ? product.product_type.toUpperCase()
-                : (product.category || "").toUpperCase()}
+              {(product.sub_category ||
+                product.product_type ||
+                product.category ||
+                ""
+              ).toUpperCase()}
             </p>
 
             <h1>{product.name}</h1>
 
             <div className="heading-meta-row">
-              <span className="detail-price">
-                ₹{price.toLocaleString("en-IN")}
-              </span>
+              <div className="detail-price-wrapper">
+                <span className="detail-price">
+                  ₹{currentPrice.toLocaleString("en-IN")}
+                </span>
+
+                {salePrice && (
+                  <>
+                    <span className="detail-price-original">
+                      ₹{originalPrice.toLocaleString("en-IN")}
+                    </span>
+                    <span className="detail-discount-tag">
+                      {discountPercent}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
 
               {product.is_featured && (
                 <span className="detail-featured">FEATURED OBJECT</span>
@@ -409,7 +468,7 @@ function ProductDetail({
 
               {product.is_available ? (
                 <span className="detail-stock-badge in-stock">
-                  <ShieldCheck size={12} /> OFFICIAL INVENTORY
+                  <ShieldCheck size={12} /> IN STOCK · SHIPS IN 24H
                 </span>
               ) : (
                 <span className="detail-stock-badge sold-out">
@@ -451,9 +510,9 @@ function ProductDetail({
             </div>
 
             <p className="detail-size-note">
-              {viewMode === "3d-lab"
+              {viewMode === "3d-studio" || viewMode === "3d-lab"
                 ? "Selected colour updates real-time 3D model."
-                : "Switch to 3D Lab to preview interactive colourways."}
+                : "Switch to 3D Studio or 3D Lab to preview interactive colourways."}
             </p>
           </div>
 
@@ -519,24 +578,35 @@ function ProductDetail({
             </div>
           </div>
 
-          {/* ADD TO BAG BUTTON */}
-          <button
-            className="detail-add-button"
-            onClick={handleAddToBag}
-            disabled={sizes.length > 0 && !selectedSize}
-          >
-            {added ? (
-              <>
-                <Check size={18} />
-                ADDED TO DEMO BAG
-              </>
-            ) : (
-              <>
-                <ShoppingBag size={18} />
-                ADD TO DEMO BAG — ₹{(price * quantity).toLocaleString("en-IN")}
-              </>
-            )}
-          </button>
+          {/* ADD TO BAG BUTTON & WISHLIST ROW */}
+          <div className="detail-action-row">
+            <button
+              className="detail-add-button"
+              onClick={handleAddToBag}
+              disabled={sizes.length > 0 && !selectedSize}
+            >
+              {added ? (
+                <>
+                  <Check size={18} />
+                  ADDED TO DEMO BAG
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={18} />
+                  ADD TO DEMO BAG — ₹{(currentPrice * quantity).toLocaleString("en-IN")}
+                </>
+              )}
+            </button>
+
+            <button
+              className={`detail-wishlist-btn ${isWishlisted ? "is-active" : ""}`}
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              aria-label="Wishlist toggle"
+            >
+              <Heart size={18} fill={isWishlisted ? "#ffffff" : "none"} />
+            </button>
+          </div>
 
           {added && (
             <p className="detail-success">
@@ -597,7 +667,13 @@ function ProductDetail({
                       )}
                     </div>
                     <h4>{rel.name}</h4>
-                    <p>₹{Number(rel.price).toLocaleString("en-IN")}</p>
+                    <p>
+                      ₹
+                      {(rel.sale_price
+                        ? Number(rel.sale_price)
+                        : Number(rel.price)
+                      ).toLocaleString("en-IN")}
+                    </p>
                   </div>
                 ))}
               </div>

@@ -12,12 +12,25 @@ class Product(models.Model):
     slug = models.SlugField(max_length=250, blank=True, default="")
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    sale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Discounted promotional price in INR",
+    )
     category = models.CharField(
         max_length=20,
         choices=CATEGORY_CHOICES,
         default="footwear",
     )
     product_type = models.CharField(max_length=100, blank=True, default="")
+    sub_category = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="e.g. Performance Running, Cricket Spikes, Training Shorts, etc.",
+    )
     image = models.URLField(max_length=500, blank=True)
     is_featured = models.BooleanField(default=False)
     is_available = models.BooleanField(default=True)
@@ -25,7 +38,13 @@ class Product(models.Model):
         max_length=50,
         blank=True,
         default="none",
-        help_text="cricket_shoe, running_shoe, apparel, cap, or none",
+        help_text="running_shoe, cricket_shoe, apparel, cap, cricket_bat, cricket_ball, water_bottle, or none",
+    )
+    model_3d_url = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Direct static path or URL to .glb asset",
     )
     specifications = models.JSONField(blank=True, default=dict)
     sku = models.CharField(max_length=100, blank=True, default="")

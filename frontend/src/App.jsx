@@ -21,6 +21,7 @@ const collections = [
   {
     number: "01",
     name: "FOOTWEAR",
+    categoryKey: "footwear",
     detail: "Built to go further.",
     className: "collection-footwear",
     href: "#product-catalogue",
@@ -28,6 +29,7 @@ const collections = [
   {
     number: "02",
     name: "APPAREL",
+    categoryKey: "apparel",
     detail: "Made for every move.",
     className: "collection-apparel",
     href: "#product-catalogue",
@@ -35,6 +37,7 @@ const collections = [
   {
     number: "03",
     name: "ACCESSORIES",
+    categoryKey: "accessories",
     detail: "The finishing details.",
     className: "collection-accessories",
     href: "#product-catalogue",
@@ -48,6 +51,7 @@ function ArrowUpRightIcon() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [catalogueCategory, setCatalogueCategory] = useState("all");
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -288,6 +292,7 @@ function App() {
                   className={`collection-card ${item.className}`}
                   href={item.href}
                   key={item.number}
+                  onClick={() => setCatalogueCategory(item.categoryKey)}
                   whileHover={{ y: -7 }}
                   transition={{ duration: 0.25 }}
                 >
@@ -401,7 +406,10 @@ function App() {
 
             </div>
 
-            <ProductList />
+            <ProductList
+              externalCategory={catalogueCategory}
+              onCategoryChange={setCatalogueCategory}
+            />
 
           </section>
 
